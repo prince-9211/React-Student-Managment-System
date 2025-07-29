@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
 const Page = () => {
   const [firstName, setfirstName] = useState('');
   const [lastName, setlastName] = useState('');
   const [age, setage] = useState('');
   const [students, setStudents] = useState([]);
+
+  // Load students on page load
+  useEffect(() => {
+    axios.get('http://localhost:3000/students')
+      .then(res => setStudents(res.data))
+      .catch(err => console.error("Error fetching students:", err));
+  }, []);
 
   const handleClear = () => {
     setfirstName('');
@@ -13,14 +21,15 @@ const Page = () => {
   };
 
   const handleSave = () => {
-    const newStudent = {
-      firstName,
-      lastName,
-      age,
-    };
+    const newStudent = { firstName, lastName, age };
 
-    setStudents([...students, newStudent]);
-    handleClear(); // clear after save
+    // Save to backend
+    axios.post('http://localhost:3000/students', newStudent)
+      .then(res => {
+        setStudents([...students, res.data]);
+        handleClear();
+      })
+      .catch(err => console.error("Error saving student:", err));
   };
 
   return (
@@ -48,12 +57,8 @@ const Page = () => {
         value={age}
         onChange={(e) => setage(e.target.value)}
       />
-      <button className='clear' type='button' onClick={handleClear}>
-        Clear
-      </button>
-      <button className='save' type='button' onClick={handleSave}>
-        Save
-      </button>
+      <button className='clear' onClick={handleClear}>Clear</button>
+      <button className='save' onClick={handleSave}>Save</button>
 
       <div>
         <h3>Saved Students:</h3>
